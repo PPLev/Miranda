@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Console and Settings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222; /* темный фон */
+            color: #fff; /* белый текст */
+        }
+
+        .wraper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .console {
+            height: 552px;
+            background-color: #333; /* цвет фона для блока с консолью */
+            color: #fff; /* белый текст */
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            width: 100%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .console-output {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd; /* цвет рамки */
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #222; /* цвет фона для вывода */
+        }
+
+        .console-output2 {
+            height: 100%;
+            overflow-y: auto;
+            border: 1px solid #ddd; /* цвет рамки */
+            border-radius: 5px;
+            background-color: #222; /* цвет фона для вывода */
+        }
+
+        .input-container {
+            display: flex;
+        }
+
+        .console-input {
+            flex: 1; /* Растягивает ввод текста на всю доступную ширину */
+            border-radius: 5px 0 0 5px; /* Закругление левого края */
+            width: calc(100% - 22px);
+            border: 1px solid #ddd;
+            background: transparent;
+            color: #fff;
+            padding: 10px;
+            margin-top: 10px;
+            outline: none;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+
+        .console-input:focus {
+            border: 1px solid #007bff;
+        }
+
+        .console-button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .console-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<h1 style="text-align: center; margin-top: 40px;">Настройки и Сообщения</h1>
+
+<!-- Форма для отправки сообщений -->
+<div class="wraper">
+    <div class="console">
+        <div class="console-output" id="console-output"></div>
+        <div class="input-container">
+            <input type="text" class="console-input" id="messageInput" placeholder="Введите сообщение...">
+            <button class="console-button" id="sendMessageButton">Отправить</button>
+        </div>
+        <!-- Страница с настройками -->
+        <div id="settings" style="margin-top: 20px;">
+            <h2 style="text-align: center;">Настройки</h2>
+            <!-- Примеры интерфейса для настроек -->
+            <div style="text-align: center;">
+                <label for="setting1">Настройка 1</label>
+                <input type="text" id="setting1" value="Значение 1">
+            </div>
+            <div style="text-align: center;">
+                <label for="setting2">Настройка 2</label>
+                <input type="text" id="setting2" value="Значение 2">
+            </div>
+            <!-- Добавьте другие настройки по аналогии -->
+            <div style="text-align: center;">
+                <button class="console-button" onclick="updateSettings()">Сохранить настройки</button>
+            </div>
+        </div>
+    </div>
+    <div class="console">
+        <div class="console-output2" id="console-output2"></div>
+    </div>
+</div>
+
+
+<!-- Скрипт для работы с вебсокетами и обновления настроек -->
+<script>
+    // Подключение к серверу по вебсокетам
+    const socket = new WebSocket('ws://localhost:8765'); // Поменяйте адрес и порт сервера
+
+    // Функция для обновления настроек
+    function updateSettings() {
+        const settings = {};
+        // Получаем значения настроек из полей ввода
+        const setting1 = document.getElementById('setting1').value;
+        const setting2 = document.getElementById('setting2').value;
+        // Добавляем значения в объект настроек
+        settings.setting1 = setting1;
+        settings.setting2 = setting2;
+        // Преобразуем настройки в JSON формат и отправляем на сервер
+        const data = JSON.stringify({action: 'update_settings', settings});
+        socket.send(data);
+    }
+
+    // Обработчик события открытия соединения
+    socket.addEventListener('open', function (event) {
+        console.log('Соединение установлено');
+        const data = JSON.stringify({action: 'get_settings'});
+        socket.send(data);
+
+    });
+
+
+    // Обработчик события приема сообщения по вебсокету
+    socket.addEventListener('message', function (event) {
+        const data = JSON.parse(event.data); // Распарсить JSON-строку
+        console.log(event.data)
+        console.log(JSON.stringify(data))
+        if (Array.isArray(data)) {
+            clearConsole();
+
+            // Если получен массив объектов JSON
+            data.forEach(function (item) {
+                console.log("item")
+                displayMessage2(item);
+            });
+        } else if (typeof data === 'object') {
+            // Если получен отдельный JSON-объект
+            displayMessage(data);
+        } else {
+            // Если получено простое сообщение
+            writeToConsole(data);
+        }
+    });
+    // Обработчик события закрытия соединения
+    socket.addEventListener('close', function (event) {
+        console.log('Соединение закрыто. Переподключение...');
+        setTimeout(connectWebSocket, 1000); // Переподключение через 1 секунду (можно задать другой интервал)
+    });
+
+    // Обработчик события ошибки соединения
+    socket.addEventListener('error', function (event) {
+        console.error('Ошибка веб-сокета:', event);
+    });
+
+
+    // Функция для форматирования сообщения (рекурсивная)
+    function formatMessage(message) {
+        let formattedMessage = '';
+
+        // Если сообщение является объектом, преобразовать его в JSON-строку
+        if (typeof message === 'object') {
+            console.log(message.role);
+            console.log(message.content);
+            // formattedMessage = JSON.stringify(message);
+            formattedMessage = '<span style="color: red">'+message.role+'</span>' + ': ' +  '<span style="color: green">'+message.content+'</span>'
+        } else {
+            formattedMessage = message; // Если сообщение не объект, использовать его как есть
+        }
+
+        return formattedMessage;
+    }
+
+    // Функция для обновления настроек на странице
+    function updateSettingsUI(settings) {
+        // Обновляем значения полей ввода на странице
+        document.getElementById('setting1').value = settings.setting1;
+        document.getElementById('setting2').value = settings.setting2;
+        // Добавьте обновление других настроек по аналогии
+    }
+
+
+    const consoleOutput = document.getElementById('console-output');
+    const consoleOutput2 = document.getElementById('console-output2');
+    const consoleInput = document.getElementById('messageInput');
+
+    // Функция для очистки консоли
+    function clearConsole() {
+        consoleOutput2.innerHTML = ''; // Очистить HTML-содержимое элемента
+    }
+
+
+    // Функция для отображения сообщения на странице
+    function displayMessage(message) {
+        const messageList = document.createElement('div');
+        messageList.innerHTML = formatMessage(message); // Форматировать и добавить сообщение в div
+        consoleOutput.appendChild(messageList);
+    }
+
+    // Функция для отображения сообщения на странице
+    function displayMessage2(message) {
+        const messageList = document.createElement('div');
+        messageList.innerHTML = formatMessage(message); // Форматировать и добавить сообщение в div
+        consoleOutput2.appendChild(messageList);
+    }
+
+    function writeToConsole(message) {
+        consoleOutput.innerHTML += `<p>${message}</p>`;
+    }
+
+    // Функция для отправки сообщения и обработки события Enter
+    function sendMessageAndProcessCommand() {
+        const command = consoleInput.value;
+        if (command.trim() !== '') { // Проверяем, что строка не пустая
+            processCommand(command); // Обработка команды
+            sendMessage(); // Отправка сообщения по веб-сокету
+            consoleInput.value = ''; // Очистка поля ввода
+        }
+    }
+
+    // Обработчик события нажатия клавиши Enter в поле ввода
+    consoleInput.addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            sendMessageAndProcessCommand(); // Вызов функции для отправки сообщения и обработки события Enter
+        }
+    });
+
+    // Обработчик события нажатия на кнопку "Отправить"
+    document.getElementById('sendMessageButton').addEventListener('click', function () {
+        sendMessageAndProcessCommand(); // Вызов функции для отправки сообщения и обработки события нажатия на кнопку
+    });
+
+    // Функция для отправки сообщения
+    function sendMessage() {
+        const message = consoleInput.value;
+        // Преобразуем введенное сообщение в JSON формат
+        const data = JSON.stringify({message});
+        socket.send(data);
+        consoleInput.value = ''; // Очистка поля ввода после отправки
+    }
+
+    function processCommand(command) {
+        // You can implement your command processing logic here
+        // For simplicity, let's just echo back the command
+        writeToConsole(`> ${command}`);
+    }
+</script>
+</body>
+</html>
