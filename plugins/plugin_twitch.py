@@ -140,15 +140,13 @@ class Twitchclass:
         #     await cmd.reply('Неверно введена команда')
         # else:
         await cmd.reply(
-            f'Вот ВК, моей мамы https://vk.com/dechuwino, и про ее бусти не забудь https://boosty.to/korsik')
-            # f'А у Куру есть ВК https://vk.com/cururururu, и дискорд тоже есть https://discord.gg/tmmN34P6. Самое главное помни: не подписался - без хила остался!')
+            f'Вот ВК, моей мамы https://vk.com/dechuwino, и про ее бусти не забудь https://boosty.to/korsik'
+            f'А у Куру есть ВК https://vk.com/cururururu, и дискорд тоже есть https://discord.gg/tmmN34P6. Самое главное помни: не подписался - без хила остался!')
 
     #
     @staticmethod
     async def comand_okuru(cmd: ChatCommand):
-        # if len(cmd.parameter) == 0:
-        #     await cmd.reply('Неверно введена команда')
-        # else:
+
         await cmd.reply(
             # f'Вот ВК, моей мамы https://vk.com/dechuwino, и про ее бусти не забудь https://boosty.to/korsik')
             f'Мама играет в игрульки с Каей. Кая - это змея если вы не знали, она такая красииииивая.')
@@ -257,15 +255,15 @@ class Twitchclass:
         # chat.register_event(ChatEvent.RAID, self.on_message)
 
         # # вы можете напрямую регистрировать команды и их обработчики, в данном случае будет зарегистрирована команда !reply
-        chat.register_command('Миранда', self.test_command)
+        # chat.register_command('Миранда', self.test_command)
 
-        # chat.register_command('ОКуру', self.comand_okuru)
+        chat.register_command('ОКуру', self.comand_okuru)
         chat.register_command('ссылки', self.test_command2)
         # chat.register_command('пипецчату', self.test_command_pipec)
         # chat.register_command('рульки', self.command_rulki)
 
         chat.register_command('ОДэчи', self.test_command3)
-        chat.register_command('Шутка', self.test_command4)
+        # chat.register_command('Шутка', self.test_command4)
 
         # chat.register_command('тест', self.test)
 
