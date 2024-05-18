@@ -258,7 +258,7 @@ class Twitchclass:
         # chat.register_command('Миранда', self.test_command)
 
         chat.register_command('ОКуру', self.comand_okuru)
-        chat.register_command('ссылки', self.test_command2)
+        # chat.register_command('ссылки', self.test_command2)
         # chat.register_command('пипецчату', self.test_command_pipec)
         # chat.register_command('рульки', self.command_rulki)
 
