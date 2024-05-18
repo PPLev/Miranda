@@ -16,7 +16,6 @@ class ContextHistory(Base):
     role = pw.TextField(null=True)
     content = pw.TextField(null=True)
 
-
     def to_dict(self):
         return {
             "id": self.id,
@@ -49,5 +48,3 @@ class ContextHistory(Base):
         database = db
 
 
-db.connect()
-db.create_tables([ContextHistory])

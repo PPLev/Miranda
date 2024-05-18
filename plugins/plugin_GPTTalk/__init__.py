@@ -3,7 +3,6 @@ from .utils import *
 core = Core()
 
 
-
 async def start(core: Core):
     manifest = {
         "name": "Плагин GPTTalk",
@@ -23,11 +22,11 @@ async def start(core: Core):
     return manifest
 
 
-
 async def start_with_options(core: Core, manifest: dict):
     base_url = manifest["options"]["openai_completable"]["base_url"]
     model = manifest["options"]["openai_completable"]["model"]
     token = manifest["options"]["openai_completable"]["token"]
     use_custom_base = manifest["options"]["use_custom_base"]
 
-    core.gpt_talk = GPTTalk(model=model, token=token, base_url=base_url if use_custom_base else "https://api.openai.com/v1")
+    core.gpt_talk = GPTTalk(model=model, token=token,
+                            base_url=base_url if use_custom_base else "https://api.openai.com/v1")

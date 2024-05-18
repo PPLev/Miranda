@@ -53,7 +53,10 @@ class WebSocketServer:
                     action = data['action']
                     if action == 'get_settings':
                         # Отправляем текущие настройки клиенту
-                        await self.send_to_client(json.dumps(core.plugin_manifests))
+                        # print(json.dumps(core.plugin_manifests, ensure_ascii=False))
+                        # print(core.plugin_manifests)
+
+                        await self.send_to_client({'action': 'settings', 'data': core.plugin_manifests})
                     elif action == 'update_settings':
                         # Обновляем настройки
                         if 'settings' in data:

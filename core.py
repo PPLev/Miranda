@@ -74,9 +74,6 @@ class Core(JaaCore, metaclass=MetaSingleton):
     def __init__(self, observer_list=["on_input", "on_output"]):
         super().__init__()
 
-        self.sound_playing = None
-        self.ws_server = None
-        self.gpt_talk = None
         for observer in observer_list:
             self.add_observer(observer)
 
@@ -108,6 +105,28 @@ class Core(JaaCore, metaclass=MetaSingleton):
 
         find_data = re.findall(manifest_re, plugin_content)[0]
         data = eval(find_data)
+        return data
+
+    @staticmethod
+    def get_options():
+        import json
+        folder_path = 'options'
+        all_data = {}  # Создаем пустой словарь для хранения данных из всех файлов
+
+        for filename in os.listdir(folder_path):
+            if filename.endswith('.json'):
+                file_path = os.path.join(folder_path, filename)
+
+                # Чтение JSON-файла
+                with open(file_path, "r", encoding="utf-8") as file:
+                    try:
+                        # Парсинг JSON
+                        data = json.load(file)
+                        print("Данные из файла", filename, ":", data)
+
+                        all_data.update(data)
+                    except json.JSONDecodeError as e:
+                        print("Ошибка при чтении JSON из файла", filename, ":", e)
         return data
 
 

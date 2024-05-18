@@ -12,6 +12,7 @@
         }
 
         .wraper {
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -81,6 +82,13 @@
         .console-button:hover {
             background-color: #0056b3;
         }
+        .setings{
+            display: block;
+            font-family: monospace;
+            unicode-bidi: isolate;
+            white-space: pre;
+            margin: 1em 0px;
+        }
     </style>
 </head>
 <body>
@@ -96,17 +104,8 @@
         </div>
         <!-- Страница с настройками -->
         <div id="settings" style="margin-top: 20px;">
-            <h2 style="text-align: center;">Настройки</h2>
-            <!-- Примеры интерфейса для настроек -->
-            <div style="text-align: center;">
-                <label for="setting1">Настройка 1</label>
-                <input type="text" id="setting1" value="Значение 1">
-            </div>
-            <div style="text-align: center;">
-                <label for="setting2">Настройка 2</label>
-                <input type="text" id="setting2" value="Значение 2">
-            </div>
-            <!-- Добавьте другие настройки по аналогии -->
+            <h2 style="text-align: center;">Плагины</h2>
+            <div id="jsonDisplay" class="setings"></div>
             <div style="text-align: center;">
                 <button class="console-button" onclick="updateSettings()">Сохранить настройки</button>
             </div>
@@ -120,8 +119,148 @@
 
 <!-- Скрипт для работы с вебсокетами и обновления настроек -->
 <script>
-    // Подключение к серверу по вебсокетам
-    const socket = new WebSocket('ws://localhost:8765'); // Поменяйте адрес и порт сервера
+    let socket
+    function connectWebSocket() {
+        // Подключение к серверу по вебсокетам
+        socket = new WebSocket('ws://localhost:8765'); // Поменяйте адрес и порт сервера
+
+        // Обработчик события открытия соединения
+        socket.addEventListener('open', function (event) {
+            console.log('Соединение установлено');
+            const data = JSON.stringify({action: 'get_settings'});
+            socket.send(data);
+
+        });
+
+        // Обработчик события закрытия соединения
+        socket.addEventListener('close', function (event) {
+            console.log('Соединение закрыто. Переподключение...');
+            setTimeout(connectWebSocket, 1000); // Переподключение через 1 секунду (можно задать другой интервал)
+        });
+
+        // Обработчик события ошибки соединения
+        socket.addEventListener('error', function (event) {
+            console.error('Ошибка веб-сокета:', event);
+        });
+
+        // Обработчик события приема сообщения по вебсокету
+        socket.addEventListener('message', function (event) {
+            getMessage(event)
+        });
+    }
+
+    connectWebSocket()
+
+
+    function getMessage(event){
+        console.log(JSON.parse(event.data))
+
+        // const data = JSON.parse(JSON.parse(event.data)); // Распарсить JSON-строку
+        const data = JSON.parse(event.data); // Распарсить JSON-строку
+
+        console.log(data)
+        console.log(data.action)
+        if(data.action === 'settings'){
+            console.log(data.data)
+            updateSettingsUI(data.data)
+        }
+        if(data.action === 'context') {
+            if (Array.isArray(data.data)) {
+                clearConsole();
+
+                // Если получен массив объектов JSON
+                data.data.forEach(function (item) {
+                    console.log("item")
+                    displayMessage2(item);
+                });
+            } else if (typeof data.data === 'object') {
+                // Если получен отдельный JSON-объект
+                displayMessage(data.data);
+            } else {
+                // Если получено простое сообщение
+                writeToConsole(data.data);
+            }
+        }
+
+
+
+    }
+
+    // Функция для форматирования сообщения (рекурсивная)
+    function formatMessage(message) {
+        let formattedMessage = '';
+
+        // Если сообщение является объектом, преобразовать его в JSON-строку
+        if (typeof message === 'object') {
+            // formattedMessage = JSON.stringify(message);
+            formattedMessage = '<span style="color: red">'+message.role+'</span>' + ': ' +  '<span style="color: green">'+message.content+'</span>'
+        } else {
+            formattedMessage = message; // Если сообщение не объект, использовать его как есть
+        }
+
+        return formattedMessage;
+    }
+
+    // Функция для обновления настроек на странице
+    function updateSettingsUI(settings) {
+        var settingElement = document.getElementById('jsonDisplay');
+        console.log(settingElement);
+        settingElement.innerHTML = '';
+        for (var pluginName in settings) {
+            var plugin = settings[pluginName];
+
+            var pluginDiv = document.createElement("div");
+            pluginDiv.classList.add("plugin");
+
+            const nameHeading = document.createElement("h3");
+
+
+            nameHeading.textContent = plugin.name + ': ';
+
+            let status = document.createElement("span");
+            status.textContent = plugin.options.is_active ? "Активен" : "Неактивен";
+
+
+            pluginDiv.appendChild(nameHeading);
+            nameHeading.appendChild(status);
+            const optionsListLevel1 = document.createElement("ul");
+
+            // Проходим по каждому объекту в options
+            // for (const optionLevel1 in plugin.options) {
+            //     if (optionLevel1 === 'is_active')
+            //     console.log(plugin.options[optionLevel1]);
+            //     const optionItemLevel1 = document.createElement("li");
+            //
+            //     // Если значение является объектом, проходим по его свойствам
+            //     if (typeof plugin.options[optionLevel1] === 'object') {
+            //         optionItemLevel1.textContent = optionLevel1 + ":";
+            //         optionsListLevel1.appendChild(optionItemLevel1);
+            //
+            //         for (const optionLevel2 in plugin.options[optionLevel1]) {
+            //             const optionsListLevel2 = document.createElement("ul");
+            //             const optionItemLevel2 = document.createElement("li");
+            //             optionItemLevel2.textContent = optionLevel2 + ": " + plugin.options[optionLevel1][optionLevel2];
+            //             optionsListLevel2.appendChild(optionItemLevel2);
+            //             optionsListLevel1.appendChild(optionsListLevel2);
+            //         }
+            //     }
+            //     // Если значение не является объектом, просто выводим его
+            //     else {
+            //         optionItemLevel1.textContent = optionLevel1 + ": " +plugin.options[optionLevel1];
+            //         optionsListLevel1.appendChild(optionItemLevel1);
+            //     }
+            //
+            //     pluginDiv.appendChild(optionsListLevel1);
+            // }
+
+            jsonDisplay.appendChild(pluginDiv);
+        }
+        // Обновляем значения полей ввода на странице
+        // document.getElementById('setting1').value = settings.setting1;
+        // document.getElementById('setting2').value = settings.setting2;
+        // Добавьте обновление других настроек по аналогии
+    }
+
 
     // Функция для обновления настроек
     function updateSettings() {
@@ -135,73 +274,6 @@
         // Преобразуем настройки в JSON формат и отправляем на сервер
         const data = JSON.stringify({action: 'update_settings', settings});
         socket.send(data);
-    }
-
-    // Обработчик события открытия соединения
-    socket.addEventListener('open', function (event) {
-        console.log('Соединение установлено');
-        const data = JSON.stringify({action: 'get_settings'});
-        socket.send(data);
-
-    });
-
-
-    // Обработчик события приема сообщения по вебсокету
-    socket.addEventListener('message', function (event) {
-        const data = JSON.parse(event.data); // Распарсить JSON-строку
-        console.log(event.data)
-        console.log(JSON.stringify(data))
-        if (Array.isArray(data)) {
-            clearConsole();
-
-            // Если получен массив объектов JSON
-            data.forEach(function (item) {
-                console.log("item")
-                displayMessage2(item);
-            });
-        } else if (typeof data === 'object') {
-            // Если получен отдельный JSON-объект
-            displayMessage(data);
-        } else {
-            // Если получено простое сообщение
-            writeToConsole(data);
-        }
-    });
-    // Обработчик события закрытия соединения
-    socket.addEventListener('close', function (event) {
-        console.log('Соединение закрыто. Переподключение...');
-        setTimeout(connectWebSocket, 1000); // Переподключение через 1 секунду (можно задать другой интервал)
-    });
-
-    // Обработчик события ошибки соединения
-    socket.addEventListener('error', function (event) {
-        console.error('Ошибка веб-сокета:', event);
-    });
-
-
-    // Функция для форматирования сообщения (рекурсивная)
-    function formatMessage(message) {
-        let formattedMessage = '';
-
-        // Если сообщение является объектом, преобразовать его в JSON-строку
-        if (typeof message === 'object') {
-            console.log(message.role);
-            console.log(message.content);
-            // formattedMessage = JSON.stringify(message);
-            formattedMessage = '<span style="color: red">'+message.role+'</span>' + ': ' +  '<span style="color: green">'+message.content+'</span>'
-        } else {
-            formattedMessage = message; // Если сообщение не объект, использовать его как есть
-        }
-
-        return formattedMessage;
-    }
-
-    // Функция для обновления настроек на странице
-    function updateSettingsUI(settings) {
-        // Обновляем значения полей ввода на странице
-        document.getElementById('setting1').value = settings.setting1;
-        document.getElementById('setting2').value = settings.setting2;
-        // Добавьте обновление других настроек по аналогии
     }
 
 

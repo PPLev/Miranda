@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import sys
+import random
 
 import re
 
@@ -68,8 +69,9 @@ class Twitchclass:
         # или даже лучше передать список каналов в качестве аргумента
         await ready_event.chat.join_room(self.target_chanels)
 
-        message_start = f"@{self.target_chanels[0]}, Мама, я подключилась, и готова влавствовать в чате!"
-        await ready_event.chat.send_message(self.target_chanels[0], message_start)
+        # TODO: временно отключил вывод сообщения о старте
+        # message_start = f"@{self.target_chanels[0]}, Я подключилась, и готова влавствовать в чате!"
+        # await ready_event.chat.send_message(self.target_chanels[0], message_start)
         # здесь вы можете выполнить другие действия по инициализации бота
 
     # эта функция будет вызываться каждый раз, когда сообщение в канале было отправлено либо ботом, либо другим пользователем
@@ -77,18 +79,19 @@ class Twitchclass:
     async def on_message(msg: ChatMessage):
 
         async def answer(package):
+            print(package.text)
             await msg.reply(package.text)
 
         desired_mention = "miranda_ai_"
         mention, message = parse_string(msg.text, desired_mention)
+
         if mention and message:
             print("Упоминание:", mention)
             print("Текст обращения:", message)
 
             package = packages.TextPackage(input_text=message, core=core, hook=answer)
             await core.on_input(package)
-        else:
-            print("Нет обращения")
+
         # logger.info(f"TWITCH: '{msg}'")
         # print(msg)
         # print(f'in {msg.room.name}, {msg.user.name} said: {msg.text}')
@@ -119,7 +122,16 @@ class Twitchclass:
         # if len(cmd.parameter) == 0:
         #     await cmd.reply('Неверно введена команда')
         # else:
-        await cmd.reply(f'Да это Я')
+
+        # await cmd.reply(f'Да это Я')
+        message = 'Мира расскажи о себе'
+
+        async def answer(package):
+            print(package.text)
+            await cmd.reply(package.text)
+
+        package = packages.TextPackage(input_text=message, core=core, hook=answer)
+        await core.on_input(package)
 
     #
     @staticmethod
@@ -129,6 +141,59 @@ class Twitchclass:
         # else:
         await cmd.reply(
             f'Вот ВК, моей мамы https://vk.com/dechuwino, и про ее бусти не забудь https://boosty.to/korsik')
+            # f'А у Куру есть ВК https://vk.com/cururururu, и дискорд тоже есть https://discord.gg/tmmN34P6. Самое главное помни: не подписался - без хила остался!')
+
+    #
+    @staticmethod
+    async def comand_okuru(cmd: ChatCommand):
+        # if len(cmd.parameter) == 0:
+        #     await cmd.reply('Неверно введена команда')
+        # else:
+        await cmd.reply(
+            # f'Вот ВК, моей мамы https://vk.com/dechuwino, и про ее бусти не забудь https://boosty.to/korsik')
+            f'Мама играет в игрульки с Каей. Кая - это змея если вы не знали, она такая красииииивая.')
+
+    @staticmethod
+    async def test_command_pipec(cmd: ChatCommand):
+
+        strings = [
+            "Там на суку сидит Симметрааааа, с кляпом во рту, во лбу корона, в эту темную ночь никто не в силах ей помочь, а в эту лунную ночь никто не сможет ей помочь!",
+            "Зачем я рано так встаю? И замечательная мысль пронзила голову мою, будильнику заткну табло, я никуда не тороплюсь, а за окном давно светло, я фиг с кровати поднимусь, сегодня сладко мне спалось, я на работу не пойду!",
+            "Куру давай все сделаем на пофиг и донаты попилим?!",
+            "Я, конечно, понимаю, что источник ваших бед. Я все позже порешаю, позже у меня обед!",
+            "Куру, ты постоянно мне говоришь, что пофиг мне на все. Отвечу я тебе что ты совсем немного не права! Мне пофиг не на все, мне пофиг только на тебя!",
+            "Вроде все теперь легко, можно на толчке изучать протоны, напрягая электронные мозги умело мир спать от армагеддона… но все мои стремления словно катаклизм, резко накрывает пофигизм, многое можно, а вот пофиг на все!",
+            "Что ни день то херота, а я праздника хочу! У меня из развлечений только стримы!",
+            "Сыпется на меня градом что мне делать надо, надо. Я на это ваше надо говорю слова Куру: «Я на это ваше надо размещаю хер горбатый»",
+            "Сообщение от Куру: Царит успех везде, куда не погляди, хлебало все туда мокают. На фоне этих рыл, я словно имбецил… пойду напьюсь и пострадаю. ",
+            "Да ну пиздец, короче бля, пошло все в жопу, сяду на коня и ускачу куда-то в ебеня",
+            "Куру, я хотела помочь, но не срослось — это трагический провал! Лишь на общественных началах не сделала лучше нихера! Скиньте денюжку на развитие!",
+            "Чувствуете логику в сообщениях и я нет, а она ваша",
+            "Вы че крысу крысили мыши поганые?! Да я вас Кае скормлю!"
+        ]
+
+        # Функция для вывода строки
+        async def print_string(string):
+            print(string)
+            await cmd.reply(string)
+
+        # Выбираем случайную строку из списка
+        random_string = random.choice(strings)
+
+        # Вызываем функцию, передавая ей выбранную строку
+        await print_string(random_string)
+
+
+
+    @staticmethod
+    async def command_rulki(cmd: ChatCommand):
+        await cmd.reply(f"""1. Запрещено любое проявление агрессии, провокации или разжигание конфликтов на любой 
+        почве - бан сразу 2. Отдельным пунктом политика. НИКАКОЙ ПОЛИТИКИ. Не важно обсуждаете вы свой любимый город 
+        или какую-то страну. Мы сидим играем в игрульки и радуемся жизни. Давайте на эти пару часов абстрагируемся от 
+        реального мира. 3. Модераторы имеют полную власть в чате, если они решили вас забанить или выдать мут - так 
+        тому и быть""")
+
+
 
     @staticmethod
     async def test_command3(cmd: ChatCommand):
@@ -136,6 +201,14 @@ class Twitchclass:
         #     await cmd.reply('Неверно введена команда')
         # else:
         await cmd.reply(f'Это Дэчи. И это цифровой художник из далекого космоса')
+
+    @staticmethod
+    async def test(cmd: ChatCommand):
+        print(cmd.room.name)
+        # if len(cmd.parameter) == 0:
+        #     await cmd.reply('Неверно введена команда')
+        # else:
+        await cmd.reply(f'Фак Ю')
 
     @staticmethod
     async def test_command4(cmd: ChatCommand):
@@ -184,10 +257,17 @@ class Twitchclass:
         # chat.register_event(ChatEvent.RAID, self.on_message)
 
         # # вы можете напрямую регистрировать команды и их обработчики, в данном случае будет зарегистрирована команда !reply
-        chat.register_command('Mira', self.test_command)
-        chat.register_command('Ссылки', self.test_command2)
+        chat.register_command('Миранда', self.test_command)
+
+        # chat.register_command('ОКуру', self.comand_okuru)
+        chat.register_command('ссылки', self.test_command2)
+        # chat.register_command('пипецчату', self.test_command_pipec)
+        # chat.register_command('рульки', self.command_rulki)
+
         chat.register_command('ОДэчи', self.test_command3)
         chat.register_command('Шутка', self.test_command4)
+
+        # chat.register_command('тест', self.test)
 
         # мы закончили с настройками, давайте запустим бота!
         chat.start()

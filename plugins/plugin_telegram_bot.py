@@ -22,6 +22,7 @@ logger = logging.getLogger("root")
 
 @router.message(F.text == "/start")
 async def command_handler(msg: types.Message, *args, **kwargs):
+    print(f"пользователь с ID:  {msg.from_user.id} пытается залезть в бота")
     if msg.from_user.id not in kwargs["bot"].allow_ids:
         await msg.reply(
             text="Только хозяин может меня использовать!"
