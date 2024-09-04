@@ -6,8 +6,12 @@ import websockets
 
 from core import Core
 import logging
+import packages
 
-logger = logging.getLogger("root")
+logger = logging.getLogger("root").setLevel(logging.INFO)
+
+
+logging.getLogger('websockets').setLevel(logging.WARNING)
 
 core = Core()
 
@@ -65,6 +69,9 @@ class WebSocketServer:
                             print("Settings updated:", self.settings)
                             # Отправляем подтверждение клиенту
                             await self.send_to_client({"message": "Settings updated successfully"})
+                elif 'message' in data:
+                    package = packages.TextPackage(data['message'], core, packages.NULL_HOOK)
+                    await core.on_input(package=package)
         finally:
             self.clients.remove(websocket)
 
@@ -78,7 +85,7 @@ class WebSocketServer:
             print("No active WebSocket connection to send message.")
 
     async def start(self):
-        server = await websockets.serve(self.handle_client, self.host, self.port, ping_timeout=None)
+        server = await websockets.serve(self.handle_client, self.host, self.port, ping_timeout=None, logger=logger)
         print(f"WebSocket server started at ws://{self.host}:{self.port}")
         if self.websocket:
             for value in core.plugin_manifests.values():
