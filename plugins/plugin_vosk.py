@@ -38,6 +38,7 @@ def recognize_file(file):
 
     if vosk_model is None:
         load_model()
+
     rec = vosk.KaldiRecognizer(vosk_model, 44100)
     rec.SetWords(True)
     rec.SetPartialWords(True)
@@ -50,6 +51,7 @@ def recognize_file(file):
 
     if "text" in (recognized := json.loads(rec.FinalResult())):
         return recognized["text"]
+
     return "Не распознано("
 
 
@@ -83,6 +85,7 @@ async def run_vosk():
     rec = vosk.KaldiRecognizer(vosk_model, 44100)
 
     logger.info("Запуск распознователя речи vosk вход в цикл")
+    logger.info(f"{input_device_id}")
 
     while True:
         await asyncio.sleep(0)
@@ -120,6 +123,8 @@ async def start_with_options(core: Core, manifest: dict):
     global model_settings, input_device_id
     model_settings = manifest["options"]["model_settings"]
     input_device_id = manifest["options"]["input_device_id"]
+
     asyncio.run_coroutine_threadsafe(run_vosk(), asyncio.get_running_loop())
+
     core.recognize_file = recognize_file
     core.sound_playing = False
