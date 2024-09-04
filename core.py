@@ -13,8 +13,19 @@ from jaa import JaaCore
 F = MagicFilter()
 version = "0.0.1"
 
+from datetime import datetime
+
+# Получаем текущую дату
+current_date = datetime.now().strftime("%Y-%m-%d")
+
+# Формируем имя файла с датой
+log_filename = f'./logs/data_{current_date}.log'
+
 logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s",
-                    level=logging.INFO)
+                    level=logging.INFO,
+                    filename=log_filename,  # Укажите имя файла для логов
+                    filemode='a')  # 'a' для добавления логов в конец файла, 'w' для перезаписи файла
+
 
 
 class NotFoundFilerTextError(BaseException):
