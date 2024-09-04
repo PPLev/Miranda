@@ -4,9 +4,11 @@ import logging
 from aiogram import Bot, Dispatcher, Router, F, types
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.filters import Command
 
 from core import Core
 import packages
+from utils.clear_text import *
 
 router = Router()
 
@@ -20,8 +22,8 @@ core = Core()
 logger = logging.getLogger("root")
 
 
-@router.message(F.text == "/start")
-async def command_handler(msg: types.Message, *args, **kwargs):
+@router.message(Command("start"))
+async def start_command_handler(msg: types.Message, *args, **kwargs):
     print(f"пользователь с ID:  {msg.from_user.id} пытается залезть в бота")
     if msg.from_user.id not in kwargs["bot"].allow_ids:
         await msg.reply(
@@ -29,7 +31,17 @@ async def command_handler(msg: types.Message, *args, **kwargs):
         )
         return
 
-    await msg.reply("Я тут)")
+    await msg.reply("Рада вас видеть хозяин")
+
+
+@router.message(Command("clear_context"))
+async def clear_context_command_handler(msg: types.Message, *args, **kwargs):
+    print(f"пользователь с ID:  {msg.from_user.id} пытается залезть в бота")
+    await core.gpt_talk.clear_context()
+
+    # if msg.from_user.id not in kwargs["bot"].allow_ids:
+
+    await msg.reply("Контекст почищен")
 
 
 @router.message(F.text)
@@ -42,19 +54,18 @@ async def msg_handler(msg: types.Message, *args, **kwargs):
         )
         return
 
-    async def answer(package):
+    async def answer(packagew: packages.TextPackage):
+
         bot: Bot = kwargs["bot"]
         await bot.send_message(
-            text=package.text,
+            text=packagew.text,
             chat_id=msg.from_user.id
         )
-        # await msg.reply("Это конечно все здорово, но пока я туплю)")
+        packageq = packages.TextPackage(input_text=packagew.text, core=core, hook=packages.NULL_HOOK)
+        await core.on_output(packageq)
 
-    # TODO: тут нада отправка в ядро
     package = packages.TextPackage(input_text=msg.text, core=core, hook=answer)
     await core.on_input(package)
-
-    # await msg.reply("Это конечно все здорово, но пока я туплю)")
 
 
 @router.message(F.voice)
@@ -69,9 +80,18 @@ async def voice_handler(msg: types.Message, *args, **kwargs):
     file_path = file.file_path
     await bot.download_file(file_path, "last_bot_voice.wav")
     text = core.recognize_file("last_bot_voice.wav")
-    await msg.reply(f"Услышала:\n{text}")
-    # TODO: тут нада отправка в ядро
-    await msg.reply("но пока я туплю)")
+
+    async def answer2(packagew: packages.TextPackage):
+        bot: Bot = kwargs["bot"]
+        await bot.send_message(
+            text=packagew.text,
+            chat_id=msg.from_user.id
+        )
+        packageq = packages.TextPackage(input_text=packagew.text, core=core, hook=packages.NULL_HOOK)
+        await core.on_output(packageq)
+
+    package = packages.TextPackage(input_text=text, core=core, hook=answer2)
+    await core.on_input(package)
 
 
 async def run_client(bot_token, allow_isd):
