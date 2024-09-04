@@ -48,3 +48,10 @@ class ContextHistory(Base):
         database = db
 
 
+class SystemContext(Base):
+    id = pw.IntegerField(primary_key=True)
+    context = pw.TextField(null=True)
+    description = pw.TextField(null=True)
+
+    class Meta:
+        database = db
