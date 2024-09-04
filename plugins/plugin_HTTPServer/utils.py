@@ -7,7 +7,7 @@ import os
 import sys
 import requests
 
-logger = logging.getLogger("root")
+logger = logging.getLogger(__name__)
 
 from core import Core, F
 
