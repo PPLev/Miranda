@@ -101,6 +101,7 @@
         <div class="input-container">
             <input type="text" class="console-input" id="messageInput" placeholder="Введите сообщение...">
             <button class="console-button" id="sendMessageButton">Отправить</button>
+            <button class="console-button" id="sendMessageButtonVoice">Озвучить</button>
         </div>
         <!-- Страница с настройками -->
         <div id="settings" style="margin-top: 20px;">
@@ -306,11 +307,22 @@
     }
 
     // Функция для отправки сообщения и обработки события Enter
-    function sendMessageAndProcessCommand() {
+    function sendMessageAndProcessCommand(type) {
+        console.log('type', type);
         const command = consoleInput.value;
         if (command.trim() !== '') { // Проверяем, что строка не пустая
-            processCommand(command); // Обработка команды
-            sendMessage(); // Отправка сообщения по веб-сокету
+            switch (type) {
+                case 'message':
+                    processCommand(command); // Обработка команды
+                    sendMessage('message'); // Отправка сообщения по веб-сокету
+                    break;
+
+                case 'voice':
+                    processCommand(command); // Обработка команды
+                    sendMessage('voice'); // Отправка сообщения по веб-сокету
+                    break;
+
+            }
             consoleInput.value = ''; // Очистка поля ввода
         }
     }
@@ -318,20 +330,25 @@
     // Обработчик события нажатия клавиши Enter в поле ввода
     consoleInput.addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
-            sendMessageAndProcessCommand(); // Вызов функции для отправки сообщения и обработки события Enter
+            sendMessageAndProcessCommand('message'); // Вызов функции для отправки сообщения и обработки события Enter
         }
     });
 
     // Обработчик события нажатия на кнопку "Отправить"
     document.getElementById('sendMessageButton').addEventListener('click', function () {
-        sendMessageAndProcessCommand(); // Вызов функции для отправки сообщения и обработки события нажатия на кнопку
+        sendMessageAndProcessCommand('message'); // Вызов функции для отправки сообщения и обработки события нажатия на кнопку
+    });
+    // Обработчик события нажатия на кнопку "Отправить"
+    document.getElementById('sendMessageButtonVoice').addEventListener('click', function () {
+        sendMessageAndProcessCommand('voice'); // Вызов функции для отправки сообщения и обработки события нажатия на кнопку
     });
 
     // Функция для отправки сообщения
-    function sendMessage() {
+    function sendMessage(typeMessage) {
         const message = consoleInput.value;
         // Преобразуем введенное сообщение в JSON формат
-        const data = JSON.stringify({message});
+        const data = JSON.stringify({message, typeMessage});
+        console.log(data);
         socket.send(data);
         consoleInput.value = ''; // Очистка поля ввода после отправки
     }
